@@ -255,31 +255,48 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Jump (stable CheckSphere version)
+    #region Jump
     void HandleJump()
     {
-        // check ground with sphere under the player
+        // Vérifie si le joueur est au sol (CheckSphere)
         Vector3 checkPos = transform.position + Vector3.down * groundCheckOffset;
         isGrounded = Physics.CheckSphere(checkPos, groundCheckRadius, groundLayer);
 
-        // debug visual
+        // Debug visuel
         Debug.DrawLine(checkPos, checkPos + Vector3.up * 0.2f, isGrounded ? Color.green : Color.red);
 
-        // jump only if grounded
+        // Si le joueur est au sol et appuie sur espace → saut
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
+            // Reset de la vitesse verticale
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+
+            // Applique une impulsion vers le haut
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+            // Active le flag de saut
             isJumping = true;
+            animator.SetTrigger("Jump"); // 🔥 Joue l’animation de saut immédiatement
         }
 
-        // reset jump when landed and vertical speed <= 0
+        // Si on est en l’air et que la vitesse verticale < 0 → on tombe
+        if (!isGrounded && rb.linearVelocity.y < -0.1f)
+        {
+            animator.SetBool("isFalling", true);
+        }
+        else
+        {
+            animator.SetBool("isFalling", false);
+        }
+
+        // Si on touche le sol → reset du saut
         if (isGrounded && isJumping && rb.linearVelocity.y <= 0f)
         {
             isJumping = false;
         }
     }
     #endregion
+
 
     #region Animator
     void UpdateAnimator()
