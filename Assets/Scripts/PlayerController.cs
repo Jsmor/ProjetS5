@@ -4,49 +4,41 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Références")]
     public Rigidbody rb;
+    public Animator animator;
     public Camera tpsCamera;
     public Camera fpsCamera;
     public Transform fpsCameraPivot;
-    public GameObject weapon;
+    public Transform tpsCameraRig;
+    public Transform tpsNormalPos;
+    public Transform tpsAimPos;
 
-    [Header("TPS Camera Rig")]
-    public Transform tpsCameraRig;    // empty qui contient TPS_Camera
-    public Transform tpsNormalPos;    // position TPS centrée
-    public Transform tpsAimPos;       // position TPS épaule droite
-
-    [Header("Vitesse")]
+    [Header("Mouvement")]
     public float walkSpeed = 5f;
     public float sprintMultiplier = 1.5f;
     public float aimSpeedMultiplier = 0.5f;
-    public float dashSpeed = 15f;
-    public float dashDuration = 0.2f;
-    public float dashCooldown = 1f;
+
+    [Header("Saut")]
+    public float jumpForce = 5f;
+    public LayerMask groundLayer;
+    public float groundCheckRadius = 0.2f;
+    public float groundCheckOffset = 0.9f;
 
     [Header("FOV")]
     public float normalFOV = 60f;
     public float sprintFOV = 75f;
-    public float dashFOV = 90f;
     public float aimFOV = 40f;
     public float fovSmoothSpeed = 5f;
 
-    [Header("FPS Settings")]
+    [Header("Sensibilité FPS")]
     public float mouseSensitivity = 2f;
 
-    [Header("Comportement pendant le tir (TPS)")]
-    public bool stopMovementWhileFiring = false;
-    public float fireRotationSpeed = 12f;
-
-    // états
+    // États internes
+    private bool isGrounded = false;
+    private bool isJumping = false;
     private bool isSprinting = false;
-    private bool isDashing = false;
+    private bool isAiming = false;
     private bool isFPS = false;
     private bool isFiring = false;
-    private bool isAiming = false;
-
-    // dash
-    private float dashTimer = 0f;
-    private float dashCooldownTimer = 0f;
-    private Vector3 dashDirection;
 
     // FPS rotation
     private float xRotation = 0f;
@@ -54,6 +46,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         if (rb == null) rb = GetComponent<Rigidbody>();
+        if (animator == null) animator = GetComponentInChildren<Animator>();
 
         tpsCamera.enabled = true;
         fpsCamera.enabled = false;
@@ -65,20 +58,19 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         HandleCameraSwitch();
+        HandleCameraRotation();
         HandleAim();
         HandleSprint();
-        HandleDashInput();
-        HandleFiringState();
-
-        HandleCameraRotation();
+        HandleMovement();
+        HandleJump();
         UpdateTPSCameraRig();
         UpdateFOV();
+        UpdateAnimator();
     }
 
     void FixedUpdate()
     {
-        HandleMovement();
-        HandleDashMovement();
+        ApplyMovement();
     }
 
     #region Camera & Input
@@ -107,9 +99,6 @@ public class PlayerController : MonoBehaviour
             fpsCameraPivot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
-    //=====================================================================================
-    //Ce code ne fonctionne pas
-    //=====================================================================================
     void UpdateTPSCameraRig()
     {
         if (tpsCameraRig == null || tpsNormalPos == null || tpsAimPos == null) return;
@@ -126,17 +115,13 @@ public class PlayerController : MonoBehaviour
             Time.deltaTime * 10f
         );
     }
-    //=====================================================================================
-    //Ce code ne fonctionne pas
-    //=====================================================================================
-    
+
     void UpdateFOV()
     {
         Camera activeCamera = isFPS ? fpsCamera : tpsCamera;
 
         float targetFOV;
-        if (isDashing) targetFOV = dashFOV;
-        else if (isAiming) targetFOV = aimFOV;
+        if (isAiming) targetFOV = aimFOV;
         else if (isSprinting) targetFOV = sprintFOV;
         else targetFOV = normalFOV;
 
@@ -148,13 +133,14 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    #region Movement & rotation
+    #region Movement
+    float moveX, moveZ;
+    Vector3 moveDir;
+
     void HandleMovement()
     {
-        if (isDashing) return;
-
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        moveX = Input.GetAxis("Horizontal");
+        moveZ = Input.GetAxis("Vertical");
 
         Vector3 forward, right;
         if (isFPS)
@@ -172,103 +158,76 @@ public class PlayerController : MonoBehaviour
             right.Normalize();
         }
 
-        Vector3 moveDir = (forward * moveZ + right * moveX).normalized;
-        float speed = walkSpeed;
+        moveDir = (forward * moveZ + right * moveX).normalized;
+    }
 
+    void ApplyMovement()
+    {
+        if (isJumping) return;
+
+        float speed = walkSpeed;
         if (isSprinting) speed *= sprintMultiplier;
         if (isAiming) speed *= aimSpeedMultiplier;
 
-        if (!isFPS && isFiring)
-        {
-            rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
+        Vector3 velocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
+        rb.linearVelocity = velocity;
 
-            Vector3 lookDir = tpsCamera.transform.forward;
-            lookDir.y = 0f;
-            if (lookDir.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(lookDir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, fireRotationSpeed * Time.deltaTime);
-            }
-        }
-        else
+        if (!isFPS && moveDir != Vector3.zero)
         {
-            rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
-
-            if (!isFPS && moveDir != Vector3.zero)
-            {
-                transform.forward = moveDir;
-            }
+            transform.forward = moveDir;
         }
     }
-    #endregion
 
-    #region Sprint
     void HandleSprint()
     {
-        isSprinting = Input.GetKey(KeyCode.LeftShift) && !isDashing && !isFiring && !isAiming;
+        isSprinting = Input.GetKey(KeyCode.LeftShift) && isGrounded && moveZ > 0.1f;
     }
     #endregion
 
-    #region Dash
-    void HandleDashInput()
+    #region Jump
+    void HandleJump()
     {
-        dashCooldownTimer -= Time.deltaTime;
+        // Vérifie si le joueur est au sol
+        Vector3 checkPos = transform.position + Vector3.down * groundCheckOffset;
+        isGrounded = Physics.CheckSphere(checkPos, groundCheckRadius, groundLayer);
 
-        if (isDashing)
+        // Affiche la sphère pour debug
+        Debug.DrawLine(checkPos, checkPos + Vector3.up * 0.1f, isGrounded ? Color.green : Color.red);
+
+        // Détection du saut
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            dashTimer -= Time.deltaTime;
-            if (dashTimer <= 0f) isDashing = false;
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            isJumping = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.E) && dashCooldownTimer <= 0f && !isDashing)
+        // Quand on retouche le sol, on reset le saut
+        if (isGrounded && isJumping && rb.linearVelocity.y <= 0f)
         {
-            float moveX = Input.GetAxis("Horizontal");
-            float moveZ = Input.GetAxis("Vertical");
-
-            Vector3 forward, right;
-            if (isFPS)
-            {
-                forward = transform.forward;
-                right = transform.right;
-            }
-            else
-            {
-                forward = tpsCamera.transform.forward;
-                right = tpsCamera.transform.right;
-                forward.y = 0f;
-                right.y = 0f;
-                forward.Normalize();
-                right.Normalize();
-            }
-
-            Vector3 moveDir = new Vector3(moveX, 0, moveZ);
-            if (moveDir.magnitude == 0f)
-                dashDirection = forward;
-            else
-                dashDirection = (forward * moveZ + right * moveX).normalized;
-
-            isDashing = true;
-            dashTimer = dashDuration;
-            dashCooldownTimer = dashCooldown;
+            isJumping = false;
         }
-    }
-
-    void HandleDashMovement()
-    {
-        if (!isDashing) return;
-        rb.linearVelocity = dashDirection * dashSpeed;
     }
     #endregion
 
-    #region Firing & Aiming
-    void HandleFiringState()
-    {
-        isFiring = Input.GetButton("Fire1");
-    }
-
+    #region Aiming
     void HandleAim()
     {
         isAiming = Input.GetButton("Fire2"); // clic droit
+    }
+    #endregion
+
+    #region Animator
+    void UpdateAnimator()
+    {
+        if (animator == null) return;
+
+        animator.SetFloat("Horizontal", moveX);
+        animator.SetFloat("Vertical", moveZ);
+        animator.SetBool("isSprinting", isSprinting);
+        animator.SetBool("isGrounded", isGrounded);
+        animator.SetBool("isJumping", isJumping);
+        animator.SetBool("isFalling", !isGrounded && rb.linearVelocity.y < -0.1f);
     }
     #endregion
 }
