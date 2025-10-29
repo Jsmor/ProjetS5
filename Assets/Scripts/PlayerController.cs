@@ -148,11 +148,13 @@ public class PlayerController : MonoBehaviour
     #region Movement
     void HandleMovement()
     {
-        if (isDashing) return;
+        if (isDashing) return; // empêche le mouvement normal pendant un dash
 
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        // ✅ utilise les variables globales moveX et moveZ
+        moveX = Input.GetAxis("Horizontal");
+        moveZ = Input.GetAxis("Vertical");
 
+        // Calcul de la direction selon la vue (FPS ou TPS)
         Vector3 forward, right;
         if (isFPS)
         {
@@ -163,41 +165,31 @@ public class PlayerController : MonoBehaviour
         {
             forward = tpsCamera.transform.forward;
             right = tpsCamera.transform.right;
+
+            // On ignore la composante verticale pour éviter les déplacements en diagonale dans les airs
             forward.y = 0f;
             right.y = 0f;
             forward.Normalize();
             right.Normalize();
         }
 
-        Vector3 moveDir = (forward * moveZ + right * moveX).normalized;
-        float speed = walkSpeed;
+        // ✅ Direction finale du déplacement (normalisée)
+        moveDir = (forward * moveZ + right * moveX).normalized;
 
+        // Calcul de la vitesse
+        float speed = walkSpeed;
         if (isSprinting) speed *= sprintMultiplier;
         if (isAiming) speed *= aimSpeedMultiplier;
 
-        if (!isFPS && isFiring)
-        {
-            rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
+        // Application du mouvement au Rigidbody
+        rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
 
-            Vector3 lookDir = tpsCamera.transform.forward;
-            lookDir.y = 0f;
-            if (lookDir.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(lookDir);
-                //transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, fireRotationSpeed * Time.deltaTime);
-            }
-        }
-        else
-        {
-            rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
-
-            if (!isFPS && moveDir != Vector3.zero)
-            {
-                transform.forward = moveDir;
-            }
-        }
+        // Rotation du personnage uniquement si on se déplace
+        if (!isFPS && moveDir != Vector3.zero)
+            transform.forward = moveDir;
     }
     #endregion
+
 
     #region Sprint
     void HandleSprint()
@@ -294,8 +286,13 @@ public class PlayerController : MonoBehaviour
     {
         if (animator == null) return;
 
-        animator.SetFloat("Horizontal", moveX);
-        animator.SetFloat("Vertical", moveZ);
+        // Lissage des valeurs pour éviter les saccades
+        float currentH = animator.GetFloat("Horizontal");
+        float currentV = animator.GetFloat("Vertical");
+
+        animator.SetFloat("Horizontal", Mathf.Lerp(currentH, moveX, Time.deltaTime * 10f));
+        animator.SetFloat("Vertical", Mathf.Lerp(currentV, moveZ, Time.deltaTime * 10f));
+
         animator.SetBool("isSprinting", isSprinting);
         animator.SetBool("isGrounded", isGrounded);
         animator.SetBool("isJumping", isJumping);
