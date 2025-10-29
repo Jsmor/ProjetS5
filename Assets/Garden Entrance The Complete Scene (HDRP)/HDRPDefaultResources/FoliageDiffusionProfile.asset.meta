@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 823eb1cb0436445479d87f8cbd4690c7
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 242831
+  packageName: 'Garden Entrance: The Complete Scene (HDRP)'
+  packageVersion: 1.0
+  assetPath: Assets/Garden Entrance The Complete Scene (HDRP)/HDRPDefaultResources/FoliageDiffusionProfile.asset
+  uploadId: 552135

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 967128e3f9f32744f8458d7e387857a1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 242831
+  packageName: 'Garden Entrance: The Complete Scene (HDRP)'
+  packageVersion: 1.0
+  assetPath: Assets/Garden Entrance The Complete Scene (HDRP)/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset
+  uploadId: 552135
