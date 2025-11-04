@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 5f;
     public LayerMask groundLayer;
     public float groundCheckOffset = 0.9f;
-    public float groundCheckRadius = 1.00f;
+    public float groundCheckRadius = 10.00f;
 
     [Header("FOV")]
     public float normalFOV = 60f;

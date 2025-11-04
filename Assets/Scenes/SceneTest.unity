@@ -3710,7 +3710,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   groundCheckOffset: 0.9
-  groundCheckRadius: 0.25
+  groundCheckRadius: 1
   normalFOV: 60
   sprintFOV: 75
   dashFOV: 90
