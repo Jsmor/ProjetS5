@@ -791,13 +791,43 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 38ae520c3c8a8d54b8d9f8e43aa89dd3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 219216774}
   m_SourcePrefab: {fileID: 100100000, guid: 38ae520c3c8a8d54b8d9f8e43aa89dd3, type: 3}
 --- !u!4 &219216772 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 38ae520c3c8a8d54b8d9f8e43aa89dd3, type: 3}
   m_PrefabInstance: {fileID: 219216771}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &219216773 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 38ae520c3c8a8d54b8d9f8e43aa89dd3, type: 3}
+  m_PrefabInstance: {fileID: 219216771}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &219216774
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219216773}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -6522372316600196270, guid: 38ae520c3c8a8d54b8d9f8e43aa89dd3, type: 3}
 --- !u!1 &234229175
 GameObject:
   m_ObjectHideFlags: 0
@@ -7893,6 +7923,55 @@ Transform:
   - {fileID: 1939375404}
   m_Father: {fileID: 1182389179}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2083193756
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2083193758}
+  - component: {fileID: 2083193757}
+  m_Layer: 0
+  m_Name: SalleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2083193757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2083193756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7acea08a531af6240bd90506be3a9a00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sallesPrefabs:
+  - {fileID: 5591122280738348750, guid: ae3e6eb17b60bdd498107cdb06cc1c36, type: 3}
+  - {fileID: 7573543676140637420, guid: deec5e104d57922408dcae5eb4d0991b, type: 3}
+  - {fileID: 8607475453461639983, guid: b08f683f22bc47649bcb706d3b047e7d, type: 3}
+  spawnPoint: {fileID: 2083193758}
+--- !u!4 &2083193758
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2083193756}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 100, y: 0, z: 100}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2087272688
 GameObject:
   m_ObjectHideFlags: 0
@@ -7970,3 +8049,4 @@ SceneRoots:
   - {fileID: 1658431315}
   - {fileID: 1248275168}
   - {fileID: 1444906857}
+  - {fileID: 2083193758}
